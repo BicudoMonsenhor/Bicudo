@@ -1,42 +1,66 @@
 const express = require('express');
-const app = express();
-const port = 3000;
+const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const cors = require('cors');
 
-// Middleware para processar JSON
+const app = express();
+app.use(cors());
 app.use(express.json());
 
-// Simular um banco de dados simples para usuários e tutorias
-const users = [{ username: 'admin', password: 'admin' }];
-const tutorias = [];
+// Conectar ao banco de dados MongoDB
+mongoose.connect('mongodb://localhost:3000/tutoria', { useNewUrlParser: true, useUnifiedTopology: true });
 
-// Rota para login
-app.post('/login', (req, res) => {
-    const { username, password } = req.body;
-    const user = users.find(u => u.username === username && u.password === password);
+// Modelo de Usuário
+const User = mongoose.model('User', new mongoose.Schema({
+    username: String,
+    password: String,
+}));
 
-    if (user) {
-        res.json({ token: 'fake-jwt-token' });
-    } else {
-        res.status(401).json({ message: 'Usuário ou senha inválidos' });
+// Modelo de Tutoria
+const Tutoria = mongoose.model('Tutoria', new mongoose.Schema({
+    nomeAluno: String,
+    serie: String,
+    dataHora: String,
+    assinaturaAluno: String,
+    assinaturaGestor: String,
+    professor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+}));
+
+// Rota de Registro
+app.post('/register', async (req, res) => {
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const user = new User({
+        username: req.body.username,
+        password: hashedPassword,
+    });
+    await user.save();
+    res.sendStatus(201);
+});
+
+// Rota de Login
+app.post('/login', async (req, res) => {
+    const user = await User.findOne({ username: req.body.username });
+    if (!user || !await bcrypt.compare(req.body.password, user.password)) {
+        return res.status(400).send('Credenciais inválidas');
     }
+
+    const token = jwt.sign({ id: user._id }, 'secret_key', { expiresIn: '1h' });
+    res.json({ token });
 });
 
-// Rota para salvar tutoria
-app.post('/tutoria', (req, res) => {
-    const { nomeAluno, dataHora, ...rest } = req.body;
-    tutorias.push({ nomeAluno, dataHora, ...rest });
-    res.status(201).json({ message: 'Tutoria salva com sucesso!' });
-});
+// Rota para Salvar Tutoria
+app.post('/tutoria', async (req, res) => {
+    const token = req.headers['authorization'].split(' ')[1];
+    const decoded = jwt.verify(token, 'secret_key');
 
-// Rota para listar tutorias
-app.get('/tutoria', (req, res) => {
-    res.json(tutorias);
+    const tutoria = new Tutoria({
+        ...req.body,
+        professor: decoded.id,
+    });
+    await tutoria.save();
+    res.sendStatus(201);
 });
-
-// Servir arquivos estáticos (HTML, CSS, JS)
-app.use(express.static('public'));
 
 // Iniciar o servidor
-app.listen(port, () => {
-    console.log(`Servidor rodando em http://localhost:${port}`);
-});
+app.listen(3000, () => console.log('Servidor rodando na porta 3000'));

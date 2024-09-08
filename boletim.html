@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Boletim do Aluno</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -63,24 +64,24 @@
         <form id="form-boletim">
             <div class="form-group">
                 <label for="materia">Matéria:</label>
-                <input type="text" id="materia" class="form-control" placeholder="Nome da matéria">
+                <input type="text" id="materia" class="form-control" placeholder="Nome da matéria" required>
             </div>
             <div class="form-row">
                 <div class="form-group col-md-3">
                     <label for="nota1">1º Bimestre:</label>
-                    <input type="number" id="nota1" class="form-control">
+                    <input type="number" id="nota1" class="form-control" min="0" max="10" step="0.01" required>
                 </div>
                 <div class="form-group col-md-3">
                     <label for="nota2">2º Bimestre:</label>
-                    <input type="number" id="nota2" class="form-control">
+                    <input type="number" id="nota2" class="form-control" min="0" max="10" step="0.01" required>
                 </div>
                 <div class="form-group col-md-3">
                     <label for="nota3">3º Bimestre:</label>
-                    <input type="number" id="nota3" class="form-control">
+                    <input type="number" id="nota3" class="form-control" min="0" max="10" step="0.01" required>
                 </div>
                 <div class="form-group col-md-3">
                     <label for="nota4">4º Bimestre:</label>
-                    <input type="number" id="nota4" class="form-control">
+                    <input type="number" id="nota4" class="form-control" min="0" max="10" step="0.01" required>
                 </div>
             </div>
             <button type="button" class="btn btn-success" onclick="adicionarMateria()">Adicionar Matéria</button>
@@ -137,6 +138,14 @@
         let currentRow = null;
 
         function adicionarMateria(materia, nota1, nota2, nota3, nota4, faltas) {
+            if (!materia) {
+                materia = document.getElementById('materia').value;
+                nota1 = parseFloat(document.getElementById('nota1').value) || 0;
+                nota2 = parseFloat(document.getElementById('nota2').value) || 0;
+                nota3 = parseFloat(document.getElementById('nota3').value) || 0;
+                nota4 = parseFloat(document.getElementById('nota4').value) || 0;
+            }
+
             const media = ((nota1 + nota2 + nota3 + nota4) / 4).toFixed(2);
 
             const tabela = document.getElementById('tabela-boletim').getElementsByTagName('tbody')[0];
@@ -148,10 +157,10 @@
             checkBoxCell.appendChild(checkBox);
 
             novaLinha.insertCell(1).innerHTML = materia || document.getElementById('materia').value;
-            novaLinha.insertCell(2).innerHTML = nota1 || parseFloat(document.getElementById('nota1').value) || 0;
-            novaLinha.insertCell(3).innerHTML = nota2 || parseFloat(document.getElementById('nota2').value) || 0;
-            novaLinha.insertCell(4).innerHTML = nota3 || parseFloat(document.getElementById('nota3').value) || 0;
-            novaLinha.insertCell(5).innerHTML = nota4 || parseFloat(document.getElementById('nota4').value) || 0;
+            novaLinha.insertCell(2).innerHTML = nota1;
+            novaLinha.insertCell(3).innerHTML = nota2;
+            novaLinha.insertCell(4).innerHTML = nota3;
+            novaLinha.insertCell(5).innerHTML = nota4;
             novaLinha.insertCell(6).innerHTML = media;
             novaLinha.insertCell(7).innerHTML = faltas || '<input type="number" class="form-control">';
 
@@ -169,7 +178,6 @@
                 }
             }
 
-            // Desmarcar a checkbox "Selecionar Todos" após deletar
             document.getElementById('selectAll').checked = false;
         }
 
@@ -197,7 +205,7 @@
                 let linhaTexto = '';
 
                 celulas.forEach((celula, idx) => {
-                    if (idx > 0) { // Ignora a coluna de checkbox
+                    if (idx > 0) {
                         linhaTexto += celula.innerText + '    ';
                     }
                 });
@@ -283,8 +291,6 @@
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
-                    console.log(jsonData); // Log para depuração
-
                     jsonData.forEach(row => {
                         const materia = row['Matéria'];
                         const nota1 = parseFloat(row['1º Bimestre']) || 0;
@@ -292,8 +298,6 @@
                         const nota3 = parseFloat(row['3º Bimestre']) || 0;
                         const nota4 = parseFloat(row['4º Bimestre']) || 0;
                         const faltas = row['Faltas'];
-
-                        console.log(materia, nota1, nota2, nota3, nota4, faltas); // Log para depuração
 
                         adicionarMateria(materia, nota1, nota2, nota3, nota4, faltas);
                     });

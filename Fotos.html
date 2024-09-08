@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeria de Fotos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f0f0;
+        }
+        .gallery-container {
+            margin-top: 50px;
+            padding: 20px;
+            background-color: #fff;
+            max-width: 800px;
+            margin: 50px auto;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        .gallery img {
+            width: 150px;
+            margin: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .gallery img:hover {
+            transform: scale(1.05);
+        }
+        /* Lightbox modal */
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+        }
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            margin-top: 5%;
+        }
+        .lightbox:target {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="gallery-container">
+        <h2 class="text-center">Galeria de Fotos da Escola</h2>
+        <div class="gallery d-flex flex-wrap justify-content-center">
+            <!-- Imagens serão exibidas aqui -->
+        </div>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox" onclick="this.style.display='none'">
+        <img id="lightbox-img" src="">
+    </div>
+
+    <script>
+        // Função para carregar imagens armazenadas no localStorage
+        function loadImages() {
+            var images = JSON.parse(localStorage.getItem('images') || '[]');
+            var gallery = document.querySelector('.gallery');
+            gallery.innerHTML = ''; // Limpa a galeria antes de recarregar
+
+            // Se houver imagens armazenadas, exibi-las
+            if (images.length > 0) {
+                images.forEach(function (src, index) {
+                    var img = document.createElement('img');
+                    img.src = src;
+                    img.alt = 'Imagem ' + (index + 1);
+                    img.onclick = function() {
+                        document.getElementById('lightbox-img').src = src;
+                        document.getElementById('lightbox').style.display = 'flex';
+                    };
+                    gallery.appendChild(img);
+                });
+            } else {
+                // Se não houver imagens, exibir mensagem
+                var noImagesMsg = document.createElement('p');
+                noImagesMsg.textContent = "Nenhuma imagem postada.";
+                gallery.appendChild(noImagesMsg);
+            }
+        }
+
+        // Carregar imagens quando a página for carregada
+        window.onload = loadImages;
+    </script>
+
+</body>
+</html>
